@@ -41,7 +41,7 @@ Run a diff to review the changes between main and your new branch:
 ```bash
 git diff main..{new-branch-name}
 ```
-Based on the diff output, generate a clear, concise Pull Request (PR) message summarizing the changes for the user.
+Based on the diff output, generate a clear, concise Pull Request (PR) message summarizing the changes for the user in English.
 
 ## Type Cheat Sheet
 

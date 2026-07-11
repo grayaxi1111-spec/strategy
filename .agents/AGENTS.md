@@ -26,6 +26,7 @@ strategy/
 │   ├── backtest.py          # 單策略回測引擎(BacktestResult:trades + equity_curve)
 │   ├── costs.py             # 成本模型:手續費/證交稅/滑價 → 統一費率,注入回測引擎
 │   ├── metrics.py           # 績效層:CAGR/MDD/Sharpe/Sortino/勝率/盈虧比 + 組合層報表
+│   ├── portfolio.py         # 資金分配、再平衡、DCA 現金流
 │   └── strategies/
 │       ├── base.py          # Strategy 抽象類別、SignalType、Account/Position
 │       ├── trend.py         # 策略 A:趨勢跟蹤(MA 濾網 + SuperTrend 狀態機)
@@ -36,11 +37,12 @@ strategy/
     ├── test_backtest.py
     ├── test_costs.py
     ├── test_metrics.py
+    ├── test_portfolio.py
     ├── test_trend.py
     └── test_mean_rev.py
 ```
 
-尚未實作(見第 5 節骨架):`portfolio.py`(資金分配/再平衡)、`run.py`(入口)。
+尚未實作(見第 5 節骨架):`run.py`(入口)。
 
 常用指令:測試跑 `.venv/bin/python -m pytest tests/`(pytest 裝在專案的 `.venv`,未啟用 venv 時直接打 `pytest` 會找不到指令)。
 
