@@ -29,6 +29,67 @@ class BacktestResult:
         return self.final_equity / self.initial_capital - 1.0
 
 
+def record_trade(date, signal: SignalType, price: float, shares: float,
+                 value: float, fee: float, account: Account) -> dict:
+    """組一筆交易紀錄（欄位見 TRADE_COLUMNS）。"""
+    return {
+        'date': date,
+        'action': signal.name,
+        'price': price,
+        'shares': shares,          # 本次成交股數（正值）
+        'value': value,            # 本次實際現金流（買=流出含費用,賣=扣費後流入）
+        'fee': fee,                # 本次交易成本
+        'position': account.position.shares,  # 成交後持股
+        'cash': account.cash,                 # 成交後現金
+        'avg_cost': account.position.average_price,
+    }
+
+
+def execute_signal(account: Account, signal: SignalType, price: float, date,
+                   cost_model: CostModel):
+    """
+    依訊號在給定價格成交，更新帳戶並回傳一筆交易紀錄（無成交則回傳 None）。
+    單策略回測與組合層（portfolio.py）共用同一套成交機制。
+    """
+    pos = account.position
+
+    # --- 買進：投入全部或半數現金 ---
+    if signal in (SignalType.BUY, SignalType.BUY_HALF):
+        budget = account.cash if signal == SignalType.BUY else account.cash * 0.5
+        if budget <= 0 or price <= 0:
+            return None
+        # 成本內含:總現金流出 = budget,其中含買入成本(手續費 / 滑價)
+        shares = budget / (price * (1.0 + cost_model.buy_rate))
+        fee = budget - shares * price
+        was_flat = pos.shares <= 0
+        new_shares = pos.shares + shares
+        # 加權平均成本(含買入成本)
+        pos.average_price = (pos.shares * pos.average_price + budget) / new_shares
+        pos.shares = new_shares
+        account.cash -= budget
+        if was_flat:
+            pos.entry_date = date
+        return record_trade(date, signal, price, shares, budget, fee, account)
+
+    # --- 賣出：清倉或減碼一半 ---
+    if signal in (SignalType.SELL, SignalType.REDUCE):
+        if pos.shares <= 0 or price <= 0:
+            return None
+        shares = pos.shares if signal == SignalType.SELL else pos.shares * 0.5
+        gross = shares * price
+        fee = cost_model.sell_cost(gross)  # 手續費 + 證交稅 / 滑價
+        proceeds = gross - fee
+        pos.shares -= shares
+        account.cash += proceeds
+        if pos.shares <= 1e-9:  # 完全出清，重置成本與進場日
+            pos.shares = 0.0
+            pos.average_price = 0.0
+            pos.entry_date = None
+        return record_trade(date, signal, price, shares, proceeds, fee, account)
+
+    return None
+
+
 class Backtest:
     """
     單策略回測引擎。
@@ -68,7 +129,8 @@ class Backtest:
 
             # 1. 先成交昨日訊號（今日開盤價）；暖機期內不成交
             if pending_signal != SignalType.HOLD and day_idx >= self.warmup_days:
-                trade = self._execute(account, pending_signal, open_price, date)
+                trade = execute_signal(account, pending_signal, open_price, date,
+                                       self.cost_model)
                 if trade is not None:
                     trades.append(trade)
 
@@ -95,58 +157,3 @@ class Backtest:
 
         return BacktestResult(trades=trades_df, equity_curve=equity_df,
                               initial_capital=self.initial_capital)
-
-    def _execute(self, account: Account, signal: SignalType, price: float, date):
-        """依訊號在給定價格成交，更新帳戶並回傳一筆交易紀錄（無成交則回傳 None）。"""
-        pos = account.position
-
-        # --- 買進：投入全部或半數現金 ---
-        if signal in (SignalType.BUY, SignalType.BUY_HALF):
-            budget = account.cash if signal == SignalType.BUY else account.cash * 0.5
-            if budget <= 0 or price <= 0:
-                return None
-            # 成本內含:總現金流出 = budget,其中含買入成本(手續費 / 滑價)
-            shares = budget / (price * (1.0 + self.cost_model.buy_rate))
-            fee = budget - shares * price
-            was_flat = pos.shares <= 0
-            new_shares = pos.shares + shares
-            # 加權平均成本(含買入成本)
-            pos.average_price = (pos.shares * pos.average_price + budget) / new_shares
-            pos.shares = new_shares
-            account.cash -= budget
-            if was_flat:
-                pos.entry_date = date
-            return self._record(date, signal, price, shares, budget, fee, account)
-
-        # --- 賣出：清倉或減碼一半 ---
-        if signal in (SignalType.SELL, SignalType.REDUCE):
-            if pos.shares <= 0 or price <= 0:
-                return None
-            shares = pos.shares if signal == SignalType.SELL else pos.shares * 0.5
-            gross = shares * price
-            fee = self.cost_model.sell_cost(gross)  # 手續費 + 證交稅 / 滑價
-            proceeds = gross - fee
-            pos.shares -= shares
-            account.cash += proceeds
-            if pos.shares <= 1e-9:  # 完全出清，重置成本與進場日
-                pos.shares = 0.0
-                pos.average_price = 0.0
-                pos.entry_date = None
-            return self._record(date, signal, price, shares, proceeds, fee, account)
-
-        return None
-
-    @staticmethod
-    def _record(date, signal: SignalType, price: float, shares: float,
-                value: float, fee: float, account: Account) -> dict:
-        return {
-            'date': date,
-            'action': signal.name,
-            'price': price,
-            'shares': shares,          # 本次成交股數（正值）
-            'value': value,            # 本次實際現金流（買=流出含費用,賣=扣費後流入）
-            'fee': fee,                # 本次交易成本
-            'position': account.position.shares,  # 成交後持股
-            'cash': account.cash,                 # 成交後現金
-            'avg_cost': account.position.average_price,
-        }
