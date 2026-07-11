@@ -17,7 +17,7 @@ git pull origin main
 ## Step 2 — Status & Branch
 Check the current status:
 ```bash
-git s
+git status
 ```
 Create and switch to a new branch (name it appropriately based on the task, e.g., `type-summary`):
 ```bash
