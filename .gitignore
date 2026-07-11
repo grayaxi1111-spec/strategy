@@ -3,3 +3,5 @@
 __pycache__/
 scratch.py
 .DS_Store
+data/
+results/

@@ -62,15 +62,15 @@ def get_daily_data(ticker: str, db_path: str = DEFAULT_DB_PATH) -> pd.DataFrame:
     """
     Get daily data for a ticker. Uses local SQLite cache and incrementally updates it.
     """
-    # Replace dots in ticker for sqlite table name
-    table_name = ticker.replace('.', '_')
+    # Replace dots in ticker for sqlite table name and prefix with ticker_ to avoid sqlite number errors
+    table_name = f"ticker_{ticker.replace('.', '_')}"
     
     with get_connection(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
         table_exists = cursor.fetchone() is not None
         
-        start_date = None
+        start_date = '2015-01-01'
         if table_exists:
             # Get last date
             cursor.execute(f"SELECT MAX(date) FROM {table_name}")

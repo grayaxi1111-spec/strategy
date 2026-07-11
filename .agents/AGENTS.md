@@ -27,8 +27,10 @@ strategy/
 │   ├── costs.py             # 成本模型:手續費/證交稅/滑價 → 統一費率,注入回測引擎
 │   ├── metrics.py           # 績效層:CAGR/MDD/Sharpe/Sortino/勝率/盈虧比 + 組合層報表
 │   ├── portfolio.py         # 資金分配、再平衡、DCA 現金流
+│   ├── run.py               # 入口:跑單策略 / 跑組合 / 跑變體矩陣
 │   └── strategies/
 │       ├── base.py          # Strategy 抽象類別、SignalType、Account/Position
+│       ├── bnh.py           # Buy and Hold 基準策略
 │       ├── trend.py         # 策略 A:趨勢跟蹤(MA 濾網 + SuperTrend 狀態機)
 │       └── mean_rev.py      # 策略 B:均值回歸(RSI(2) 超賣反彈)
 └── tests/                   # pytest,檔名與 quant_tool 模組一一對應
@@ -41,8 +43,6 @@ strategy/
     ├── test_trend.py
     └── test_mean_rev.py
 ```
-
-尚未實作(見第 5 節骨架):`run.py`(入口)。
 
 常用指令:測試跑 `.venv/bin/python -m pytest tests/`(pytest 裝在專案的 `.venv`,未啟用 venv 時直接打 `pytest` 會找不到指令)。
 
@@ -226,6 +226,7 @@ quant_tool/
 ├── indicators.py        # 所有指標集中計算
 ├── strategies/
 │   ├── base.py          # Strategy 抽象類別(訊號介面統一)
+│   ├── bnh.py           # Buy and Hold 基準策略
 │   ├── trend.py         # 策略 A:狀態機實作
 │   └── mean_rev.py      # 策略 B:RSI(2)
 ├── portfolio.py         # 資金分配、再平衡、DCA 現金流
