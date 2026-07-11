@@ -1,0 +1,59 @@
+# ============================
+# 量化交易系統 config.yaml
+# ============================
+
+# --- 標的清單 ---
+tickers:
+  - symbol: "VOO"
+    market: "US"
+  - symbol: "0050.TW"
+    market: "TW"
+
+# --- 成本參數 ---
+costs:
+  # 0050 (台灣)
+  TW:
+    buy_commission_rate: 0.001425    # 券商手續費 0.1425%
+    commission_discount: 0.6        # 手續費折扣 (六折)
+    sell_commission_rate: 0.001425   # 券商手續費 0.1425%
+    sell_tax_rate: 0.001            # 證交稅 0.1%
+  # VOO (美國)
+  US:
+    buy_slippage: 0.0005            # 買入滑價 0.05%
+    sell_slippage: 0.0005           # 賣出滑價 0.05%
+
+# --- 策略參數 ---
+indicators:
+  ma_periods: [5, 20, 60, 200]     # SMA 週期
+  supertrend:
+    atr_period: 10
+    multiplier: 3
+  rsi:
+    period: 2
+  adx:
+    period: 14
+
+# --- 環境濾網 ---
+filters:
+  ma200_slope_threshold: -0.005    # MA200 斜率門檻 ≥ -0.5%
+  rsi_entry: 10                    # 策略 B 進場: RSI2 < 10
+  rsi_scale_in: 5                  # 策略 B 加碼: RSI2 < 5
+  rsi_exit: 65                     # 策略 B 出場: RSI2 > 65
+  max_hold_days: 10                # 策略 B 最大持有天數
+
+# --- 資金分配 ---
+portfolio:
+  allocation:
+    strategy_a: 0.5                # 趨勢帳本 50%
+    strategy_b: 0.5                # 均值回歸帳本 50%
+  rebalance_frequency: "quarterly" # 再平衡頻率: 每季
+  initial_capital: 1000000         # 初始資金
+
+# --- 暖機期 ---
+warmup:
+  days: 200                        # 暖機期 200 個交易日不交易
+
+# --- 資料儲存 ---
+data:
+  cache_dir: "data/"
+  cache_format: "sqlite"           # sqlite 或 csv

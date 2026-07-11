@@ -2,5 +2,4 @@
 .pytest_cache/
 __pycache__/
 scratch.py
-.agents/
 .DS_Store
