@@ -122,12 +122,12 @@
 - [x] 單元測試：驗證 DCA 分配正確
 ---
 ### 11. 入口程式 (`run.py`)
-- [ ] 實作 CLI 參數解析（跑單策略 / 跑組合 / 跑變體矩陣）
-- [ ] 實作讀取 `config.yaml` 配置
-- [ ] 串接 data → indicators → strategy → backtest → metrics 完整流程
-- [ ] 實作結果輸出（console 表格 + CSV 匯出）
-- [ ] 實作權益曲線圖繪製
-- [ ] 端到端測試：用 VOO 資料跑完整流程確認不報錯
+- [x] 實作 CLI 參數解析（跑單策略 / 跑組合 / 跑變體矩陣）
+- [x] 實作讀取 `config.yaml` 配置
+- [x] 串接 data → indicators → strategy → backtest → metrics 完整流程
+- [x] 實作結果輸出（console 表格 + CSV 匯出）
+- [x] 實作權益曲線圖繪製
+- [x] 端到端測試：用 VOO 資料跑完整流程確認不報錯
 ---
 ### 12. 回測矩陣驗收
 - [ ] 跑 Phase 1 基準線：VOO 純定期定額 B&H
