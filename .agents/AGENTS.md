@@ -45,6 +45,42 @@ strategy/
 常用指令:測試跑 `.venv/bin/python -m pytest tests/`(pytest 裝在專案的 `.venv`,未啟用 venv 時直接打 `pytest` 會找不到指令)。
 
 
+# 驗證方法(改動完成後如何端到端驗證)
+
+純 library、尚無 CLI 入口(run.py 是 ROADMAP 第 11 節)。驗證面 = 套件公開介面,
+用「run.py 將來的用法」寫一支駕駛腳本跑完整管線:
+data → indicators → strategy → backtest(含成本) → metrics。
+
+## 環境細節
+- 駕駛腳本放專案外時要設 `PYTHONPATH=<專案根目錄>`
+  (Python 只把腳本所在目錄加進模組路徑,不含 cwd)。
+
+## 資料 fixture
+- ⚠️ 不要用 `get_daily_data()` 拿驗證資料:首次下載 start=None 時 yfinance
+  預設只抓 1 個月,且增量更新永不回填,還會在 `data/market_data.db` 留下
+  永久卡短的快取(驗證完記得刪)。
+- 改用 `yf.download('VOO', start='2015-01-01', auto_adjust=True)`,
+  欄位照 data.py 規格轉小寫:date/open/high/low/close/volume,
+  MultiIndex 欄位要先 `droplevel('Ticker')`。
+- 策略暖機期 200 個交易日:資料至少要 300+ 根 K 才會有成交。
+
+## 有效的交叉檢核(非循環論證)
+1. **損益守恆(最強)**:策略期末空手時,`metrics.realized_trades()` 重放的
+   已實現損益總和必須等於引擎的 `final_equity - initial_capital`
+   (成本重放 vs 現金流,兩條獨立會計路徑)。
+2. 期末仍持倉:已實現 + 未實現 = 淨值變化,
+   剩餘持倉成本 = (本金 - 期末現金) + 已實現損益(注意是加號)。
+3. MDD 用逐點迴圈重算,對 cummax 向量化版。
+4. 合理性:策略 B 應高勝率(~0.75)低盈虧比(~0.4);
+   兩策略 60 日滾動相關應在 0.3 附近。
+
+## 值得重複的 probes
+- 零交易帳本 → `summarize()` 不得崩,全部指標為 0
+- 單點 equity 序列 → cagr/mdd/sharpe = 0
+- 相關係數窗口 > 資料長度 → nan 不崩
+- `CostModel.from_yaml(path, 'JP')` → 目前是裸 KeyError
+
+
 # 量化交易系統架構 v1 — 趨勢 × 均值回歸雙引擎
 
 標的:VOO / 0050(還原股價)
