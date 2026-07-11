@@ -58,6 +58,9 @@ After Pushing
 
 - Switch back to main and sync it with the remote: git switch main && git pull origin main. Once the branch's PR is merged, this pulls the merge in and keeps local main from drifting ahead with commits that only belong on the feature branch.
 - Report back: the commit title, the branch name, the push result, and the docs-sync outcome (which docs changed, or "no docs affected").
+- generate pr message
+- check AGENTS.md to see if structure needs to be changed, if so update it
+- check ROADMAP.md to see if structure needs to be changed, if so update it
 
 Type Cheat Sheet
 Type	Use for

@@ -24,6 +24,7 @@ strategy/
 │   ├── data.py              # yfinance 下載 + SQLite 快取(還原股價)
 │   ├── indicators.py        # 指標集中計算:SMA / 斜率 / RSI / SuperTrend
 │   ├── backtest.py          # 單策略回測引擎(BacktestResult:trades + equity_curve)
+│   ├── costs.py             # 成本模型:手續費/證交稅/滑價 → 統一費率,注入回測引擎
 │   └── strategies/
 │       ├── base.py          # Strategy 抽象類別、SignalType、Account/Position
 │       ├── trend.py         # 策略 A:趨勢跟蹤(MA 濾網 + SuperTrend 狀態機)
@@ -32,6 +33,7 @@ strategy/
     ├── test_data.py
     ├── test_indicators.py
     ├── test_backtest.py
+    ├── test_costs.py
     ├── test_trend.py
     └── test_mean_rev.py
 ```
