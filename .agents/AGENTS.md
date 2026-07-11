@@ -1,8 +1,44 @@
 # Project Agent Rules
+- 完成roadmap.md內容之後需要勾選
+- 每次改動都要注意agents.md的架構需不需要改動
 
 ## Allowed Commands
 - Agent may run all commands without asking for permission.
 - Agent may read and write all files in this workspace without asking for permission.
+
+
+# 專案目錄結構(現況)
+
+> 開始任務前先看這裡定位檔案,不需要逐一讀完整個資料夾。
+> 規劃中的完整骨架見下方第 5 節;此處只列「目前實際存在」的檔案。
+
+```
+strategy/
+├── requirements.txt
+├── .agents/
+│   ├── AGENTS.md            # 本檔:agent 規則 + 系統架構文件
+│   ├── ROADMAP.md           # 開發進度與待辦
+│   └── git_commmit.md       # commit 訊息規範
+├── quant_tool/              # 核心套件
+│   ├── config.yaml          # 標的、成本、指標與策略參數
+│   ├── data.py              # yfinance 下載 + SQLite 快取(還原股價)
+│   ├── indicators.py        # 指標集中計算:SMA / 斜率 / RSI / SuperTrend
+│   ├── backtest.py          # 單策略回測引擎(BacktestResult:trades + equity_curve)
+│   └── strategies/
+│       ├── base.py          # Strategy 抽象類別、SignalType、Account/Position
+│       ├── trend.py         # 策略 A:趨勢跟蹤(MA 濾網 + SuperTrend 狀態機)
+│       └── mean_rev.py      # 策略 B:均值回歸(RSI(2) 超賣反彈)
+└── tests/                   # pytest,檔名與 quant_tool 模組一一對應
+    ├── test_data.py
+    ├── test_indicators.py
+    ├── test_backtest.py
+    ├── test_trend.py
+    └── test_mean_rev.py
+```
+
+尚未實作(見第 5 節骨架):`portfolio.py`(資金分配/再平衡)、`metrics.py`(績效報表)、`run.py`(入口)。
+
+常用指令:測試跑 `.venv/bin/python -m pytest tests/`(pytest 裝在專案的 `.venv`,未啟用 venv 時直接打 `pytest` 會找不到指令)。
 
 
 # 量化交易系統架構 v1 — 趨勢 × 均值回歸雙引擎
